@@ -74,3 +74,31 @@ knn.pred <- knn(tdm.term[train.idx,], tdm.term[test.idx,],tdm.cat[train.idx])
 # accuracy
 conf.mat <- table("prediction" = knn.pred, Actual = tdm.cat[test.idx])
 accuracy <- sum(diag(conf.mat))/length(test.idx)
+
+# summarize frequency of term
+freq <- colSums(tdm.term)
+
+# generate histogram for top 20 terms
+ord <- order(freq)
+top20 <- data.frame(name = names(freq[tail(ord,20)]), freq = freq[tail(ord,20)])
+library(ggplot2)
+p <- ggplot(top20, aes(name,freq)) + geom_bar(stat = "identity") + theme(axis.text.x = element_text(angle=45, hjust =1))
+p
+
+# generate word clound
+library(wordcloud)
+set.seed(120)
+wordcloud(names(freq), freq, min.freq = 15, scale = c(5,.1), colors = brewer.pal(6, "Dark2"))
+
+# generate hierarchal cluster
+library(cluster)
+d <- dist(t(tdm.term), method="euclidian") # e.g d <- dist(t(tdm.term[1:20]), method="euclidian")
+fit <- hclust(d = d, method="ward")
+plot(fit, hang= -1)
+
+# generate k-means clustering
+library(fpc)
+library(cluster)
+d <- dist(t(tdm.term), method = "euclidian")
+kfit <- kmeans(d, 2)
+clusplot(as.matrix(d), kfit$cluster, color = TRUE, shade = TRUE, labels= 2, lines=0)
